@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CampusConnect — Event Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --card: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #6c63ff;
+    --accent2: #ff6b6b;
+    --accent3: #43e97b;
+    --gold: #ffd700;
+    --text: #e8e8f0;
+    --muted: #7878a0;
+    --white: #ffffff;
+    --radius: 16px;
+    --shadow: 0 8px 32px rgba(108,99,255,0.15);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes float { 0%,100%{transform:translateY(0px);} 50%{transform:translateY(-10px);} }
+  @keyframes pulse { 0%,100%{opacity:0.4;} 50%{opacity:0.8;} }
+  @keyframes spin { to{transform:rotate(360deg);} }
+  @keyframes slideIn { from{transform:translateX(-20px);opacity:0;} to{transform:translateX(0);opacity:1;} }
+  @keyframes shimmer { 0%{background-position:-200% center;} 100%{background-position:200% center;} }
+  @keyframes popIn { from{transform:scale(0.8);opacity:0;} to{transform:scale(1);opacity:1;} }
+
+  /* ─── LOGIN PAGE ─── */
+  #login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .login-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 20% 50%, rgba(108,99,255,0.25) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(255,107,107,0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 60% 80%, rgba(67,233,123,0.1) 0%, transparent 50%);
+  }
+  .login-orbs {
+    position: absolute; inset: 0; pointer-events: none;
+  }
+  .orb {
+    position: absolute; border-radius: 50%; filter: blur(60px);
+    animation: float 6s ease-in-out infinite;
+  }
+  .orb1 { width:300px;height:300px; background:rgba(108,99,255,0.3); top:-50px; left:-80px; animation-delay:0s; }
+  .orb2 { width:200px;height:200px; background:rgba(255,107,107,0.2); bottom:100px; right:-40px; animation-delay:2s; }
+  .orb3 { width:150px;height:150px; background:rgba(67,233,123,0.2); bottom:-30px; left:30%; animation-delay:4s; }
+
+  .login-card {
+    position: relative; z-index: 10;
+    background: rgba(19,19,26,0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(108,99,255,0.3);
+    border-radius: 28px;
+    padding: 48px 40px;
+    width: 100%; max-width: 440px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+    animation: fadeUp 0.6s ease both;
+  }
+  .login-logo {
+    text-align: center; margin-bottom: 32px;
+  }
+  .login-logo .logo-icon {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 18px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 24px rgba(108,99,255,0.4);
+  }
+  .login-logo h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px; font-weight: 800;
+    background: linear-gradient(135deg, #fff, #a0a0c8);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .login-logo p { color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+  .role-tabs {
+    display: flex; gap: 8px;
+    background: var(--bg); border-radius: 12px; padding: 4px;
+    margin-bottom: 28px;
+  }
+  .role-tab {
+    flex: 1; padding: 10px; border: none; border-radius: 9px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.3s;
+    background: transparent; color: var(--muted);
+  }
+  .role-tab.active {
+    background: linear-gradient(135deg, var(--accent), #9b8fff);
+    color: white; box-shadow: 0 4px 12px rgba(108,99,255,0.4);
+  }
+
+  .form-group { margin-bottom: 18px; }
+  .form-group label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px;
+    margin-bottom: 8px;
+  }
+  .form-group input, .form-group select {
+    width: 100%; padding: 13px 16px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 12px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 15px;
+    transition: all 0.3s; outline: none;
+  }
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+  }
+  .form-group select option { background: var(--surface); }
+
+  .login-btn {
+    width: 100%; padding: 14px;
+    background: linear-gradient(135deg, var(--accent), #9b8fff);
+    border: none; border-radius: 12px;
+    color: white; font-family: 'Syne', sans-serif;
+    font-size: 16px; font-weight: 700; cursor: pointer;
+    transition: all 0.3s; margin-top: 8px;
+    position: relative; overflow: hidden;
+  }
+  .login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108,99,255,0.5); }
+  .login-btn:active { transform: translateY(0); }
+
+  .login-demo {
+    margin-top: 20px; text-align: center;
+    padding: 12px; background: rgba(108,99,255,0.08);
+    border-radius: 10px; border: 1px dashed rgba(108,99,255,0.3);
+  }
+  .login-demo p { font-size: 12px; color: var(--muted); line-height: 1.8; }
+  .login-demo strong { color: var(--accent); }
+
+  /* ─── MAIN APP ─── */
+  #app { display: none; min-height: 100vh; }
+
+  /* NAV */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px; height: 68px;
+    background: rgba(10,10,15,0.9); backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-brand {
+    display: flex; align-items: center; gap: 12px;
+    font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), #ff6b6b);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .nav-brand .nb-icon {
+    width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .user-badge {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 14px; background: var(--card);
+    border-radius: 24px; border: 1px solid var(--border);
+    font-size: 13px; font-weight: 500;
+  }
+  .user-badge .ub-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent3);
+    box-shadow: 0 0 6px var(--accent3);
+  }
+  .logout-btn {
+    padding: 8px 16px; background: transparent;
+    border: 1px solid var(--border); border-radius: 10px;
+    color: var(--muted); cursor: pointer; font-size: 13px;
+    transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  }
+  .logout-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* TABS */
+  .tab-bar {
+    display: flex; align-items: center; gap: 4px;
+    padding: 16px 32px 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .tab-btn {
+    padding: 10px 20px; border: none; background: transparent;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+    color: var(--muted); cursor: pointer; border-radius: 10px 10px 0 0;
+    transition: all 0.2s; position: relative;
+  }
+  .tab-btn.active { color: var(--accent); background: rgba(108,99,255,0.1); }
+  .tab-btn.active::after {
+    content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
+    height: 2px; background: var(--accent); border-radius: 2px 2px 0 0;
+  }
+
+  /* CONTENT */
+  .content { padding: 32px; max-width: 1200px; margin: 0 auto; }
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .section-header h2 {
+    font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800;
+  }
+
+  /* STAT CARDS */
+  .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 32px; }
+  .stat-card {
+    background: var(--card); border-radius: var(--radius);
+    border: 1px solid var(--border); padding: 24px;
+    position: relative; overflow: hidden;
+    animation: fadeUp 0.5s ease both;
+  }
+  .stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .stat-card:nth-child(1)::before { background: linear-gradient(90deg, var(--accent), #9b8fff); }
+  .stat-card:nth-child(2)::before { background: linear-gradient(90deg, var(--accent2), #ffb347); }
+  .stat-card:nth-child(3)::before { background: linear-gradient(90deg, var(--accent3), #06d6a0); }
+  .stat-card:nth-child(4)::before { background: linear-gradient(90deg, var(--gold), #ffb347); }
+  .stat-icon { font-size: 28px; margin-bottom: 12px; }
+  .stat-val { font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800; }
+  .stat-label { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+  /* EVENTS GRID */
+  .events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+  .event-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+    transition: all 0.3s; animation: fadeUp 0.5s ease both;
+    cursor: pointer;
+  }
+  .event-card:hover { transform: translateY(-4px); border-color: rgba(108,99,255,0.4); box-shadow: var(--shadow); }
+  .event-banner {
+    height: 10px;
+  }
+  .cat-technical { background: linear-gradient(90deg, var(--accent), #9b8fff); }
+  .cat-cultural { background: linear-gradient(90deg, var(--accent2), #ffb347); }
+  .cat-sports { background: linear-gradient(90deg, var(--accent3), #06d6a0); }
+  .cat-academic { background: linear-gradient(90deg, var(--gold), #ffb347); }
+  .event-body { padding: 20px; }
+  .event-cat-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 10px;
+  }
+  .badge-technical { background: rgba(108,99,255,0.15); color: #9b8fff; }
+  .badge-cultural { background: rgba(255,107,107,0.15); color: #ff9f9f; }
+  .badge-sports { background: rgba(67,233,123,0.15); color: #43e97b; }
+  .badge-academic { background: rgba(255,215,0,0.15); color: #ffd700; }
+  .event-title { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .event-meta { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+  .event-meta span { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .seats-bar {
+    height: 6px; background: var(--border); border-radius: 10px; margin: 10px 0 4px;
+    overflow: hidden;
+  }
+  .seats-fill { height: 100%; border-radius: 10px; transition: width 0.5s; }
+  .fill-low { background: var(--accent3); }
+  .fill-mid { background: var(--gold); }
+  .fill-high { background: var(--accent2); }
+  .seats-label { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .event-actions { display: flex; gap: 8px; }
+
+  /* BUTTONS */
+  .btn {
+    padding: 9px 18px; border-radius: 10px; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #9b8fff); color: white;
+    box-shadow: 0 4px 12px rgba(108,99,255,0.3);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(108,99,255,0.5); }
+  .btn-outline {
+    background: transparent; border: 1px solid var(--border); color: var(--text);
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger {
+    background: rgba(255,107,107,0.15); border: 1px solid rgba(255,107,107,0.3); color: var(--accent2);
+  }
+  .btn-danger:hover { background: rgba(255,107,107,0.25); }
+  .btn-success {
+    background: rgba(67,233,123,0.15); border: 1px solid rgba(67,233,123,0.3); color: var(--accent3);
+  }
+  .btn-success:hover { background: rgba(67,233,123,0.25); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+  /* FILTER BAR */
+  .filter-bar {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;
+  }
+  .filter-chip {
+    padding: 7px 16px; border-radius: 20px;
+    border: 1px solid var(--border); background: var(--card);
+    color: var(--muted); cursor: pointer; font-size: 13px; font-weight: 500;
+    transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  }
+  .filter-chip.active {
+    background: rgba(108,99,255,0.15); border-color: var(--accent); color: var(--accent);
+  }
+
+  /* MY EVENTS */
+  .my-event-item {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px; display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; margin-bottom: 12px; animation: slideIn 0.3s ease both;
+    flex-wrap: wrap;
+  }
+  .mei-info h3 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; }
+  .mei-info p { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .mei-actions { display: flex; gap: 8px; align-items: center; }
+  .submitted-badge {
+    padding: 5px 12px; background: rgba(67,233,123,0.1);
+    border: 1px solid rgba(67,233,123,0.3); border-radius: 20px;
+    font-size: 12px; color: var(--accent3); font-weight: 600;
+  }
+
+  /* FEEDBACK FORM */
+  .feedback-modal {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+    align-items: center; justify-content: center;
+  }
+  .feedback-modal.open { display: flex; }
+  .feedback-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 24px; padding: 36px; width: 100%; max-width: 500px;
+    animation: popIn 0.3s ease both;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    max-height: 90vh; overflow-y: auto;
+  }
+  .feedback-box h2 {
+    font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .feedback-box .fb-event-name { color: var(--accent); font-size: 14px; margin-bottom: 20px; }
+  .star-rating { display: flex; gap: 8px; margin-bottom: 20px; }
+  .star {
+    font-size: 28px; cursor: pointer; transition: transform 0.2s;
+    filter: grayscale(1);
+  }
+  .star.active, .star:hover { filter: grayscale(0); transform: scale(1.2); }
+  .form-group textarea {
+    width: 100%; padding: 12px 16px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 12px; color: var(--text); resize: vertical;
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    min-height: 80px; outline: none; transition: all 0.3s;
+  }
+  .form-group textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(108,99,255,0.15); }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+
+  /* ADMIN: EVENT TABLE */
+  .admin-table {
+    width: 100%; border-collapse: collapse;
+    background: var(--card); border-radius: var(--radius); overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .admin-table th {
+    padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 700;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+  }
+  .admin-table td {
+    padding: 14px 16px; border-bottom: 1px solid rgba(42,42,58,0.5);
+    font-size: 14px; vertical-align: middle;
+  }
+  .admin-table tr:last-child td { border-bottom: none; }
+  .admin-table tr:hover td { background: rgba(108,99,255,0.04); }
+  .status-badge {
+    padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+  }
+  .status-open { background: rgba(67,233,123,0.15); color: var(--accent3); }
+  .status-full { background: rgba(255,107,107,0.15); color: var(--accent2); }
+
+  /* ADMIN: FEEDBACK CARDS */
+  .feedback-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px; margin-bottom: 14px;
+    animation: fadeUp 0.4s ease both;
+    position: relative; overflow: hidden;
+  }
+  .feedback-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: linear-gradient(180deg, var(--accent), var(--accent2));
+  }
+  .fc-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+  .fc-user { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+  .fc-event { color: var(--accent); font-size: 13px; margin-top: 2px; }
+  .fc-stars { font-size: 18px; }
+  .fc-comment { font-size: 14px; color: var(--text); margin-bottom: 10px; line-height: 1.6; }
+  .fc-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .fc-tag {
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+    background: rgba(108,99,255,0.1); border: 1px solid rgba(108,99,255,0.2); color: #a0a0d0;
+  }
+  .fc-time { font-size: 11px; color: var(--muted); margin-top: 10px; }
+
+  /* NEW EVENT FORM */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid .span2 { grid-column: 1/-1; }
+  .panel {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px;
+  }
+  .panel h3 {
+    font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700;
+    margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+  }
+
+  /* TOAST */
+  #toast {
+    position: fixed; bottom: 30px; right: 30px; z-index: 999;
+    padding: 14px 22px; border-radius: 12px;
+    background: var(--card); border: 1px solid var(--border);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    font-size: 14px; font-weight: 500;
+    transform: translateY(100px); opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex; align-items: center; gap: 10px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { border-color: rgba(67,233,123,0.5); }
+  #toast.error { border-color: rgba(255,107,107,0.5); }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center; padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty-state .es-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+  .empty-state h3 { font-family: 'Syne', sans-serif; font-size: 18px; color: var(--text); margin-bottom: 8px; }
+
+  /* SECTION TITLE */
+  .sec-title {
+    font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800;
+    margin: 32px 0 16px; display: flex; align-items: center; gap: 10px;
+  }
+  .sec-title .st-count {
+    background: rgba(108,99,255,0.15); color: var(--accent);
+    padding: 2px 10px; border-radius: 20px; font-size: 14px;
+  }
+
+  /* REGISTERED TABLE */
+  .students-list { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+  .students-list li {
+    padding: 5px 12px; background: rgba(108,99,255,0.1);
+    border-radius: 20px; font-size: 13px; color: var(--accent);
+    border: 1px solid rgba(108,99,255,0.2);
+  }
+
+  @media(max-width:768px) {
+    .stats-grid { grid-template-columns: repeat(2,1fr); }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid .span2 { grid-column: 1; }
+    .nav { padding: 0 16px; }
+    .tab-bar, .content { padding: 16px; }
+    .my-event-item { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN PAGE ═══════════════ -->
+<div id="login-page">
+  <div class="login-bg"></div>
+  <div class="login-orbs">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+  </div>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">🎓</div>
+      <h1>CampusConnect</h1>
+      <p>College Event Participation &amp; Feedback Portal</p>
+    </div>
+    <div class="role-tabs">
+      <button class="role-tab active" onclick="setRole('student')">🎒 Student</button>
+      <button class="role-tab" onclick="setRole('admin')">🛡️ Admin</button>
+    </div>
+    <div class="form-group">
+      <label>Full Name / Username</label>
+      <input type="text" id="login-name" placeholder="Enter your name..." />
+    </div>
+    <div class="form-group" id="dept-group">
+      <label>Department</label>
+      <select id="login-dept">
+        <option value="">Select Department</option>
+        <option>Computer Science</option>
+        <option>Electronics</option>
+        <option>Mechanical</option>
+        <option>Civil</option>
+        <option>Management</option>
+        <option>Arts & Design</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="••••••••" />
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    <div class="login-demo">
+      <p><strong>Demo Credentials</strong><br/>
+      Student: any name + dept + <strong>student123</strong><br/>
+      Admin: any name + <strong>admin123</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MAIN APP ═══════════════ -->
+<div id="app">
+  <nav class="nav">
+    <div class="nav-brand">
+      <div class="nb-icon">🎓</div>
+      CampusConnect
+    </div>
+    <div class="nav-right">
+      <div class="user-badge">
+        <div class="ub-dot"></div>
+        <span id="nav-user"></span>
+      </div>
+      <button class="logout-btn" onclick="logout()">⇠ Logout</button>
+    </div>
+  </nav>
+
+  <!-- Student Tabs -->
+  <div class="tab-bar" id="student-tabs">
+    <button class="tab-btn active" onclick="showTab('events')">🗓 All Events</button>
+    <button class="tab-btn" onclick="showTab('my-events')">📋 My Registrations</button>
+  </div>
+
+  <!-- Admin Tabs -->
+  <div class="tab-bar" id="admin-tabs" style="display:none">
+    <button class="tab-btn active" onclick="showTab('admin-dashboard')">📊 Dashboard</button>
+    <button class="tab-btn" onclick="showTab('admin-events')">📅 Manage Events</button>
+    <button class="tab-btn" onclick="showTab('admin-feedback')">💬 Student Feedback</button>
+  </div>
+
+  <!-- ─── STUDENT: ALL EVENTS ─── -->
+  <div class="content" id="tab-events">
+    <div class="section-header">
+      <h2>🗓 Upcoming Events</h2>
+    </div>
+    <div class="filter-bar" id="filter-bar">
+      <button class="filter-chip active" onclick="filterEvents('All',this)">All</button>
+      <button class="filter-chip" onclick="filterEvents('Technical',this)">⚡ Technical</button>
+      <button class="filter-chip" onclick="filterEvents('Cultural',this)">🎭 Cultural</button>
+      <button class="filter-chip" onclick="filterEvents('Sports',this)">🏆 Sports</button>
+      <button class="filter-chip" onclick="filterEvents('Academic',this)">📚 Academic</button>
+    </div>
+    <div class="events-grid" id="events-grid"></div>
+  </div>
+
+  <!-- ─── STUDENT: MY EVENTS ─── -->
+  <div class="content" id="tab-my-events" style="display:none">
+    <div class="section-header">
+      <h2>📋 My Registrations</h2>
+    </div>
+    <div id="my-events-list"></div>
+  </div>
+
+  <!-- ─── ADMIN: DASHBOARD ─── -->
+  <div class="content" id="tab-admin-dashboard" style="display:none">
+    <div class="section-header">
+      <h2>📊 Admin Dashboard</h2>
+    </div>
+    <div class="stats-grid" id="stats-grid"></div>
+    <div class="sec-title" style="margin-top:0">📅 Events Overview</div>
+    <div class="panel">
+      <table class="admin-table" id="admin-events-table">
+        <thead>
+          <tr>
+            <th>Event</th><th>Category</th><th>Date</th><th>Venue</th>
+            <th>Registrations</th><th>Status</th><th>Avg Rating</th>
+          </tr>
+        </thead>
+        <tbody id="admin-events-tbody"></tbody>
+      </table>
+    </div>
+    <div class="sec-title">💬 Student Feedback <span class="st-count" id="fb-count-badge">0</span></div>
+    <div id="admin-feedback-cards"></div>
+  </div>
+
+  <!-- ─── ADMIN: MANAGE EVENTS ─── -->
+  <div class="content" id="tab-admin-events" style="display:none">
+    <div class="section-header">
+      <h2>📅 Manage Events</h2>
+    </div>
+    <div class="panel" style="margin-bottom:24px">
+      <h3>➕ Create New Event</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Event Title</label>
+          <input type="text" id="ne-title" placeholder="e.g. Hackathon 2025"/>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="ne-cat">
+            <option>Technical</option>
+            <option>Cultural</option>
+            <option>Sports</option>
+            <option>Academic</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="ne-date"/>
+        </div>
+        <div class="form-group">
+          <label>Time</label>
+          <input type="time" id="ne-time"/>
+        </div>
+        <div class="form-group">
+          <label>Venue</label>
+          <input type="text" id="ne-venue" placeholder="e.g. Auditorium A"/>
+        </div>
+        <div class="form-group">
+          <label>Total Seats</label>
+          <input type="number" id="ne-seats" placeholder="100" min="1"/>
+        </div>
+        <div class="form-group span2">
+          <label>Organizer</label>
+          <input type="text" id="ne-organizer" placeholder="Club / Department name"/>
+        </div>
+        <div class="form-group span2">
+          <label>Description</label>
+          <textarea id="ne-desc" placeholder="Brief event description..."></textarea>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="createEvent()" style="margin-top:8px">🚀 Create Event</button>
+    </div>
+
+    <div class="panel">
+      <h3>📋 All Events</h3>
+      <table class="admin-table">
+        <thead>
+          <tr><th>Event</th><th>Date</th><th>Seats</th><th>Registered</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="manage-events-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─── ADMIN: FEEDBACK TAB ─── -->
+  <div class="content" id="tab-admin-feedback" style="display:none">
+    <div class="section-header">
+      <h2>💬 Student Feedback</h2>
+    </div>
+    <div id="admin-feedback-cards-2"></div>
+  </div>
+</div>
+
+<!-- ─── FEEDBACK MODAL ─── -->
+<div class="feedback-modal" id="feedback-modal">
+  <div class="feedback-box">
+    <h2>✍️ Submit Feedback</h2>
+    <div class="fb-event-name" id="fb-event-name"></div>
+    <div class="form-group">
+      <label>Overall Rating</label>
+      <div class="star-rating" id="star-rating">
+        <span class="star" data-v="1" onclick="setStar(1)">⭐</span>
+        <span class="star" data-v="2" onclick="setStar(2)">⭐</span>
+        <span class="star" data-v="3" onclick="setStar(3)">⭐</span>
+        <span class="star" data-v="4" onclick="setStar(4)">⭐</span>
+        <span class="star" data-v="5" onclick="setStar(5)">⭐</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Your Comments</label>
+      <textarea id="fb-comment" placeholder="Share your experience..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Highlights (what you loved)</label>
+      <input type="text" id="fb-highlights" placeholder="e.g. Great speakers, fun activities"/>
+    </div>
+    <div class="form-group">
+      <label>Suggestions for Improvement</label>
+      <input type="text" id="fb-improve" placeholder="e.g. Better timing, more refreshments"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeFeedback()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitFeedback()">Submit Feedback 🚀</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════
+let currentRole = 'student';
+let currentUser = null;
+let currentFilter = 'All';
+let feedbackEventId = null;
+let feedbackRating = 0;
+
+let events = [
+  { id:1, title:'Hackathon 2025', cat:'Technical', date:'2025-06-15', time:'09:00', venue:'Tech Lab A', seats:80, organizer:'CSE Dept', desc:'24-hour coding challenge with exciting prizes!', registered:[] },
+  { id:2, title:'Cultural Fiesta', cat:'Cultural', date:'2025-06-20', time:'18:00', venue:'Main Auditorium', seats:200, organizer:'Cultural Club', desc:'An evening of music, dance, and art performances.', registered:[] },
+  { id:3, title:'Cricket Tournament', cat:'Sports', date:'2025-06-22', time:'08:00', venue:'College Ground', seats:60, organizer:'Sports Committee', desc:'Inter-department cricket championship.', registered:[] },
+  { id:4, title:'Research Symposium', cat:'Academic', date:'2025-06-28', time:'10:00', venue:'Seminar Hall', seats:100, organizer:'Research Cell', desc:'Present your research to faculty and industry experts.', registered:[] },
+  { id:5, title:'Web Dev Workshop', cat:'Technical', date:'2025-07-02', time:'11:00', venue:'Computer Lab 2', seats:40, organizer:'Web Club', desc:'Hands-on session on React and Node.js.', registered:[] },
+  { id:6, title:'Drama Night', cat:'Cultural', date:'2025-07-05', time:'19:00', venue:'Open Air Theatre', seats:150, organizer:'Drama Club', desc:'Annual drama performance featuring student talent.', registered:[] },
+];
+let feedbacks = [];
+let nextId = 7;
+
+// ════════════════════════════════════════════
+// LOGIN
+// ════════════════════════════════════════════
+function setRole(role) {
+  currentRole = role;
+  document.querySelectorAll('.role-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&role==='student')||(i===1&&role==='admin')));
+  document.getElementById('dept-group').style.display = role === 'student' ? 'block' : 'none';
+}
+
+function doLogin() {
+  const name = document.getElementById('login-name').value.trim();
+  const pass = document.getElementById('login-pass').value.trim();
+  const dept = document.getElementById('login-dept').value;
+
+  if (!name) { showToast('Please enter your name.', 'error'); return; }
+  if (!pass) { showToast('Please enter a password.', 'error'); return; }
+
+  if (currentRole === 'admin') {
+    if (pass !== 'admin123') { showToast('❌ Invalid admin password.', 'error'); return; }
+  } else {
+    if (pass !== 'student123') { showToast('❌ Invalid student password.', 'error'); return; }
+    if (!dept) { showToast('Please select your department.', 'error'); return; }
+  }
+
+  currentUser = { name, role: currentRole, dept: dept || 'Admin' };
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('nav-user').textContent = `${name} (${currentRole === 'admin' ? '🛡️ Admin' : '🎒 Student'})`;
+
+  document.getElementById('student-tabs').style.display = currentRole === 'student' ? 'flex' : 'none';
+  document.getElementById('admin-tabs').style.display = currentRole === 'admin' ? 'flex' : 'none';
+
+  if (currentRole === 'admin') showTab('admin-dashboard');
+  else showTab('events');
+
+  showToast(`👋 Welcome, ${name}!`, 'success');
+}
+
+function logout() {
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-name').value = '';
+  document.getElementById('login-pass').value = '';
+  currentUser = null;
+}
+
+// ════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════
+function showTab(id) {
+  const allTabs = ['events','my-events','admin-dashboard','admin-events','admin-feedback'];
+  allTabs.forEach(t => { const el = document.getElementById('tab-' + t); if(el) el.style.display = 'none'; });
+  document.getElementById('tab-' + id).style.display = 'block';
+
+  // Update active tab button
+  const isAdmin = currentRole === 'admin';
+  const btnBar = isAdmin ? document.getElementById('admin-tabs') : document.getElementById('student-tabs');
+  btnBar.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const map = { 'events':0,'my-events':1,'admin-dashboard':0,'admin-events':1,'admin-feedback':2 };
+  if (map[id] !== undefined) btnBar.querySelectorAll('.tab-btn')[map[id]]?.classList.add('active');
+
+  if (id === 'events') renderEvents();
+  if (id === 'my-events') renderMyEvents();
+  if (id === 'admin-dashboard') renderAdminDashboard();
+  if (id === 'admin-events') renderManageEvents();
+  if (id === 'admin-feedback') renderAdminFeedbackTab();
+}
+
+// ════════════════════════════════════════════
+// EVENTS
+// ════════════════════════════════════════════
+function renderEvents() {
+  const grid = document.getElementById('events-grid');
+  const filtered = currentFilter === 'All' ? events : events.filter(e => e.cat === currentFilter);
+  if (filtered.length === 0) { grid.innerHTML = `<div class="empty-state"><div class="es-icon">🎪</div><h3>No events found</h3><p>Try a different filter</p></div>`; return; }
+
+  grid.innerHTML = filtered.map(e => {
+    const regCount = e.registered.length;
+    const pct = Math.round((regCount / e.seats) * 100);
+    const fillClass = pct < 40 ? 'fill-low' : pct < 80 ? 'fill-mid' : 'fill-high';
+    const isFull = regCount >= e.seats;
+    const isReg = e.registered.includes(currentUser?.name);
+    const myFb = feedbacks.find(f => f.eventId === e.id && f.student === currentUser?.name);
+
+    return `<div class="event-card">
+      <div class="event-banner cat-${e.cat.toLowerCase()}"></div>
+      <div class="event-body">
+        <span class="event-cat-badge badge-${e.cat.toLowerCase()}">${e.cat}</span>
+        <div class="event-title">${e.title}</div>
+        <div class="event-meta">
+          <span>📅 ${formatDate(e.date)} &nbsp;⏰ ${formatTime(e.time)}</span>
+          <span>📍 ${e.venue}</span>
+          <span>👤 ${e.organizer}</span>
+          <span>🪑 ${e.seats - regCount} seats left of ${e.seats}</span>
+        </div>
+        <div class="seats-bar"><div class="seats-fill ${fillClass}" style="width:${pct}%"></div></div>
+        <div class="seats-label">${pct}% filled</div>
+        <div class="event-actions">
+          ${isReg
+            ? `<button class="btn btn-outline btn-sm" disabled>✅ Registered</button>
+               ${myFb ? `<span class="submitted-badge">✓ Feedback Done</span>` : `<button class="btn btn-success btn-sm" onclick="openFeedback(${e.id})">💬 Give Feedback</button>`}`
+            : isFull
+              ? `<button class="btn btn-danger btn-sm" disabled>🔒 Full</button>`
+              : `<button class="btn btn-primary btn-sm" onclick="registerEvent(${e.id})">🎟 Register</button>`
+          }
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterEvents(cat, el) {
+  currentFilter = cat;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderEvents();
+}
+
+function registerEvent(id) {
+  const ev = events.find(e => e.id === id);
+  if (!ev || ev.registered.includes(currentUser.name)) return;
+  ev.registered.push(currentUser.name);
+  renderEvents();
+  showToast(`🎟 Registered for "${ev.title}"!`, 'success');
+}
+
+// ════════════════════════════════════════════
+// MY EVENTS
+// ════════════════════════════════════════════
+function renderMyEvents() {
+  const list = document.getElementById('my-events-list');
+  const myEvs = events.filter(e => e.registered.includes(currentUser.name));
+  if (myEvs.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="es-icon">📋</div><h3>No registrations yet</h3><p>Go to All Events and register!</p></div>`;
+    return;
+  }
+  list.innerHTML = myEvs.map(e => {
+    const myFb = feedbacks.find(f => f.eventId === e.id && f.student === currentUser.name);
+    return `<div class="my-event-item">
+      <div class="mei-info">
+        <h3>${e.title}</h3>
+        <p>📅 ${formatDate(e.date)} · 📍 ${e.venue} · <span class="event-cat-badge badge-${e.cat.toLowerCase()}" style="font-size:11px;padding:2px 8px">${e.cat}</span></p>
+      </div>
+      <div class="mei-actions">
+        ${myFb
+          ? `<span class="submitted-badge">✅ Feedback Submitted</span>`
+          : `<button class="btn btn-success btn-sm" onclick="openFeedback(${e.id})">💬 Give Feedback</button>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════
+// FEEDBACK
+// ════════════════════════════════════════════
+function openFeedback(id) {
+  feedbackEventId = id;
+  feedbackRating = 0;
+  const ev = events.find(e => e.id === id);
+  document.getElementById('fb-event-name').textContent = `📌 ${ev.title}`;
+  document.getElementById('fb-comment').value = '';
+  document.getElementById('fb-highlights').value = '';
+  document.getElementById('fb-improve').value = '';
+  updateStars(0);
+  document.getElementById('feedback-modal').classList.add('open');
+}
+
+function closeFeedback() {
+  document.getElementById('feedback-modal').classList.remove('open');
+}
+
+function setStar(v) { feedbackRating = v; updateStars(v); }
+function updateStars(v) {
+  document.querySelectorAll('.star').forEach(s => s.classList.toggle('active', +s.dataset.v <= v));
+}
+
+function submitFeedback() {
+  if (!feedbackRating) { showToast('Please select a star rating!', 'error'); return; }
+  const comment = document.getElementById('fb-comment').value.trim();
+  if (!comment) { showToast('Please write a comment.', 'error'); return; }
+
+  const ev = events.find(e => e.id === feedbackEventId);
+  feedbacks.unshift({
+    id: Date.now(),
+    eventId: feedbackEventId,
+    eventTitle: ev.title,
+    student: currentUser.name,
+    dept: currentUser.dept,
+    rating: feedbackRating,
+    comment,
+    highlights: document.getElementById('fb-highlights').value.trim(),
+    improve: document.getElementById('fb-improve').value.trim(),
+    time: new Date().toLocaleString()
+  });
+
+  closeFeedback();
+  showToast('🎉 Feedback submitted! Admin will see it in the dashboard.', 'success');
+  const activeTab = document.getElementById('tab-my-events').style.display !== 'none' ? 'my-events' : 'events';
+  if (activeTab === 'my-events') renderMyEvents();
+  else renderEvents();
+}
+
+// ════════════════════════════════════════════
+// ADMIN DASHBOARD
+// ════════════════════════════════════════════
+function renderAdminDashboard() {
+  const totalRegs = events.reduce((s, e) => s + e.registered.length, 0);
+  const avgRating = feedbacks.length ? (feedbacks.reduce((s,f)=>s+f.rating,0)/feedbacks.length).toFixed(1) : 'N/A';
+
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card"><div class="stat-icon">🎪</div><div class="stat-val">${events.length}</div><div class="stat-label">Total Events</div></div>
+    <div class="stat-card"><div class="stat-icon">🎟</div><div class="stat-val">${totalRegs}</div><div class="stat-label">Total Registrations</div></div>
+    <div class="stat-card"><div class="stat-icon">💬</div><div class="stat-val">${feedbacks.length}</div><div class="stat-label">Feedback Received</div></div>
+    <div class="stat-card"><div class="stat-icon">⭐</div><div class="stat-val">${avgRating}</div><div class="stat-label">Average Rating</div></div>
+  `;
+
+  document.getElementById('admin-events-tbody').innerHTML = events.map(e => {
+    const pct = Math.round((e.registered.length / e.seats) * 100);
+    const evFbs = feedbacks.filter(f => f.eventId === e.id);
+    const evAvg = evFbs.length ? (evFbs.reduce((s,f)=>s+f.rating,0)/evFbs.length).toFixed(1) : '—';
+    const isFull = e.registered.length >= e.seats;
+    return `<tr>
+      <td><strong>${e.title}</strong></td>
+      <td><span class="event-cat-badge badge-${e.cat.toLowerCase()}">${e.cat}</span></td>
+      <td>${formatDate(e.date)}</td>
+      <td>${e.venue}</td>
+      <td>${e.registered.length}/${e.seats} <span style="color:var(--muted)">(${pct}%)</span></td>
+      <td><span class="status-badge ${isFull?'status-full':'status-open'}">${isFull?'Full':'Open'}</span></td>
+      <td>${evAvg} ${evFbs.length ? '⭐' : ''}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('fb-count-badge').textContent = feedbacks.length;
+  renderFeedbackCards('admin-feedback-cards');
+}
+
+function renderAdminFeedbackTab() {
+  document.getElementById('admin-feedback-cards-2').innerHTML = '';
+  renderFeedbackCards('admin-feedback-cards-2');
+}
+
+function renderFeedbackCards(containerId) {
+  const container = document.getElementById(containerId);
+  if (feedbacks.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="es-icon">💬</div><h3>No feedback yet</h3><p>Student feedback will appear here once submitted.</p></div>`;
+    return;
+  }
+  container.innerHTML = feedbacks.map(f => `
+    <div class="feedback-card">
+      <div class="fc-header">
+        <div>
+          <div class="fc-user">👤 ${f.student} <span style="color:var(--muted);font-weight:400;font-size:13px">· ${f.dept}</span></div>
+          <div class="fc-event">📌 ${f.eventTitle}</div>
+        </div>
+        <div class="fc-stars">${'⭐'.repeat(f.rating)}</div>
+      </div>
+      <div class="fc-comment">"${f.comment}"</div>
+      ${f.highlights ? `<div class="fc-tags"><span class="fc-tag">✨ ${f.highlights}</span></div>` : ''}
+      ${f.improve ? `<div class="fc-tags" style="margin-top:6px"><span class="fc-tag" style="background:rgba(255,107,107,0.1);border-color:rgba(255,107,107,0.2);color:#ff9f9f">💡 ${f.improve}</span></div>` : ''}
+      <div class="fc-time">🕐 ${f.time}</div>
+    </div>
+  `).join('');
+}
+
+// ════════════════════════════════════════════
+// ADMIN: MANAGE EVENTS
+// ════════════════════════════════════════════
+function renderManageEvents() {
+  document.getElementById('manage-events-tbody').innerHTML = events.map(e => `
+    <tr>
+      <td><strong>${e.title}</strong><br/><span style="color:var(--muted);font-size:12px">${e.organizer}</span></td>
+      <td>${formatDate(e.date)}</td>
+      <td>${e.seats}</td>
+      <td>
+        ${e.registered.length} registered
+        ${e.registered.length > 0 ? `<br/><ul class="students-list" style="margin-top:4px">${e.registered.map(s=>`<li>${s}</li>`).join('')}</ul>` : ''}
+      </td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteEvent(${e.id})">🗑 Delete</button></td>
+    </tr>
+  `).join('');
+}
+
+function createEvent() {
+  const title = document.getElementById('ne-title').value.trim();
+  const cat = document.getElementById('ne-cat').value;
+  const date = document.getElementById('ne-date').value;
+  const time = document.getElementById('ne-time').value;
+  const venue = document.getElementById('ne-venue').value.trim();
+  const seats = parseInt(document.getElementById('ne-seats').value);
+  const organizer = document.getElementById('ne-organizer').value.trim();
+  const desc = document.getElementById('ne-desc').value.trim();
+
+  if (!title || !date || !venue || !seats || !organizer) { showToast('Please fill all required fields.', 'error'); return; }
+
+  events.push({ id: nextId++, title, cat, date, time, venue, seats, organizer, desc, registered: [] });
+  ['ne-title','ne-date','ne-time','ne-venue','ne-seats','ne-organizer','ne-desc'].forEach(id => document.getElementById(id).value = '');
+  renderManageEvents();
+  showToast(`✅ Event "${title}" created!`, 'success');
+}
+
+function deleteEvent(id) {
+  if (!confirm('Delete this event?')) return;
+  events = events.filter(e => e.id !== id);
+  feedbacks = feedbacks.filter(f => f.eventId !== id);
+  renderManageEvents();
+  showToast('🗑 Event deleted.', 'success');
+}
+
+// ════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════
+function formatDate(d) {
+  if (!d) return '';
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+}
+function formatTime(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':');
+  const ampm = +h >= 12 ? 'PM' : 'AM';
+  return `${+h % 12 || 12}:${m} ${ampm}`;
+}
+
+let toastTimer;
+function showToast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.innerHTML = (type === 'success' ? '✅ ' : '❌ ') + msg;
+  el.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 3200);
+}
+
+// Set default date for new event to today
+document.addEventListener('DOMContentLoaded', () => {
+  const d = document.getElementById('ne-date');
+  if (d) d.value = new Date().toISOString().split('T')[0];
+});
+</script>
+</body>
+</html>
